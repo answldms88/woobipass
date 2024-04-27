@@ -78,6 +78,10 @@
         android:layout_height="wrap_content"
         android:text="Scan QR Code" />
 
-
+    <TextView
+        android:layout_width="222dp"
+        android:layout_height="35dp"
+        android:id="@+id/textview"
+        android:text="" />
 
 </FrameLayout>

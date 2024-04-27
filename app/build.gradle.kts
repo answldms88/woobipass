@@ -6,6 +6,14 @@ android {
     namespace = "com.example.woobipass_test"
     compileSdk = 34
 
+    allprojects {
+        repositories {
+            google()
+            jcenter()  // Ensure this line is here for ZXing dependencies
+            mavenCentral()
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.woobipass_test"
         minSdk = 26
@@ -29,6 +37,8 @@ android {
 }
 
 dependencies {
+    implementation("com.journeyapps:zxing-android-embedded:4.1.0")
+    implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("com.journeyapps:zxing-android-embedded:4.1.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

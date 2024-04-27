@@ -6,12 +6,13 @@ pluginManagement {
     }
 }
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+        jcenter()  // Keep this if you are using libraries that are only available on jcenter
     }
 }
+
 
 rootProject.name = "woobipass_test"
 include(":app")
