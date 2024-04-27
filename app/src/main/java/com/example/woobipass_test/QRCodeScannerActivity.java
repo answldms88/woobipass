@@ -24,6 +24,8 @@ import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.CaptureManager;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentReference;
 
 import java.util.List;
 
@@ -34,7 +36,21 @@ public class QRCodeScannerActivity extends AppCompatActivity {
     // CaptureManager 및 DecoratedBarcodeView 객체에 대한 참조를 저장할 변수를 선언합니다.
     private CaptureManager capture;
     private DecoratedBarcodeView barcodeScannerView;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    private void updateUmbrellaCount() {
+        DocumentReference docRef = db.collection("우산").document("우산개수"); // your_document_id에 실제 문서 ID를 넣어야 합니다.
+        db.runTransaction(transaction -> {
+            Long currentCount = transaction.get(docRef).getLong("개수");
+            if (currentCount == null) currentCount = 0L; // 초기 값이 설정되지 않았을 경우를 대비
+            transaction.update(docRef, "개수", currentCount + 1);
+            return null; // 이 트랜잭션은 반환값이 필요 없습니다.
+        }).addOnSuccessListener(aVoid -> {
+            Log.d("UpdateCount", "개수 successfully updated!");
+        }).addOnFailureListener(e -> {
+            Log.w("UpdateCount", "Error updating 개수", e);
+        });
+    }
     // 액티비티가 생성될 때 호출되는 메소드입니다.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,21 +78,18 @@ public class QRCodeScannerActivity extends AppCompatActivity {
             // QRCodeScannerActivity에서의 barcodeResult 메소드 일부를 수정
             public void barcodeResult(BarcodeResult result) {
                 if (result.getText() != null) {
-                    // 인식된 데이터를 로그로 출력하고, 스캔 결과를 상태 텍스트로 설정합니다.
                     Log.e("QRCodeScanner", "Scanned data: " + result.getText());
                     barcodeScannerView.setStatusText(result.getText());
 
-                    // 스캔한 데이터가 URL인 경우 인터넷 브라우저를 통해 URL을 열고, Toast 메시지를 표시합니다.
                     if (isValidUrl(result.getText())) {
                         Toast.makeText(QRCodeScannerActivity.this, "Opening URL: " + result.getText(), Toast.LENGTH_LONG).show();
                         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(result.getText()));
                         startActivity(browserIntent);
                     } else {
-                        // URL이 아닌 경우 사용자에게 스캔된 데이터가 URL이 아님을 알립니다.
                         Toast.makeText(QRCodeScannerActivity.this, "Scanned data is not a valid URL", Toast.LENGTH_LONG).show();
                     }
+                    updateUmbrellaCount(); // 개수 업데이트 호출
                 } else {
-                    // QR 코드에서 데이터를 찾을 수 없는 경우 사용자에게 메시지를 표시합니다.
                     Toast.makeText(QRCodeScannerActivity.this, "No data found in QR Code.", Toast.LENGTH_LONG).show();
                 }
             }

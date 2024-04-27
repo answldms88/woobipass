@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "308329772436",
+    "project_id": "woobi-b8d95",
+    "storage_bucket": "woobi-b8d95.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:308329772436:android:cb8a286ac80566a276cb81",
+        "android_client_info": {
+          "package_name": "com.example.woobipass_test"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIJD7fx26uHvM8Ei4-IN4wmyDQk-Tb8SY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
