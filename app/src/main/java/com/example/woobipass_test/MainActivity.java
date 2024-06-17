@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -36,58 +36,38 @@ public class MainActivity extends AppCompatActivity {
         // "umbrellas" 컬렉션 초기화
         initializeUmbrellasCollection();
 
-        // mapbtn 버튼 찾기
-        Button mapButton = findViewById(R.id.mapbtn);
+        // 지도 버튼 설정
+        setupMapButton();
 
-        // mapbtn 버튼 클릭 리스너 설정
+        // QR 코드 스캔 버튼 설정
+        setupQRScanButton();
+    }
+
+    // 지도 버튼 설정
+    private void setupMapButton() {
+        ImageButton mapButton = findViewById(R.id.jido);
         mapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // MapImageActivity 시작
+                // 지도 이미지 액티비티 시작
                 Intent intent = new Intent(MainActivity.this, JidoImageActivity.class);
                 startActivity(intent);
             }
         });
+    }
 
-        // QR 코드 스캔 버튼 클릭 리스너 설정
-        Button scanQRButton = findViewById(R.id.scanQR);
+    // QR 코드 스캔 버튼 설정
+    private void setupQRScanButton() {
+        ImageButton scanQRButton = findViewById(R.id.scanQR);
         scanQRButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startQRCodeScannerActivity();
             }
         });
-
-        // 반납 버튼 찾기
-        Button returnButton = findViewById(R.id.rebtn);
-
-        // 반납 버튼 클릭 리스너 설정
-        returnButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 반납 버튼이 클릭되었을 때 수행할 작업
-                // Firestore의 "우산 수"를 감소시키는 작업을 여기에 추가
-
-                // 예시: Firestore 문서를 참조하여 우산 수를 1 감소시킴
-                DocumentReference umbrellaRef = FirebaseFirestore.getInstance().collection("우산").document("우산개수");
-                umbrellaRef.update("개수", FieldValue.increment(-1))
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(MainActivity.this, "우산이 반납되었습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(MainActivity.this, "우산 반납에 실패했습니다.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-            }
-        });
     }
 
-    // QRCodeScannerActivity 시작하는 메서드
+    // QRCodeScannerActivity 시작 메서드
     private void startQRCodeScannerActivity() {
         Intent intent = new Intent(MainActivity.this, QRCodeScannerActivity.class);
         startActivity(intent);

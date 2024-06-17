@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.woobipass_test">
 
-    <uses-feature android:name="android.permission.CAMERA"/>
+    <!-- 카메라 권한 요청 -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- 카메라 기능 사용 명시 -->
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true"/>
 
     <application
         android:allowBackup="true"
@@ -15,9 +21,17 @@
         android:theme="@style/Theme.Woobipass_test"
         tools:targetApi="31">
 
-        <activity android:name=".QRCodeScannerActivity"/>
-        <activity android:name=".JidoImageActivity" />
+        <!-- QR 코드 스캐너 액티비티 -->
+        <activity
+            android:name=".QRCodeScannerActivity"
+            android:exported="true"/>
 
+        <!-- 지도 이미지 액티비티 -->
+        <activity
+            android:name=".JidoImageActivity"
+            android:exported="false" />
+
+        <!-- 로그인 액티비티 -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -27,9 +41,15 @@
             </intent-filter>
         </activity>
 
+        <!-- 메인 액티비티 -->
         <activity
             android:name=".MainActivity"
             android:exported="true" />
+
+        <!-- 회원가입 액티비티 -->
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false" />
 
     </application>
 
