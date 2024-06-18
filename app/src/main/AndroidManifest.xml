@@ -5,6 +5,11 @@
 
     <!-- 카메라 권한 요청 -->
     <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- 인터넷 권한 요청 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 위치 권한 요청 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <!-- 카메라 기능 사용 명시 -->
     <uses-feature android:name="android.hardware.camera"
@@ -20,6 +25,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Woobipass_test"
         tools:targetApi="31">
+
 
         <!-- QR 코드 스캐너 액티비티 -->
         <activity

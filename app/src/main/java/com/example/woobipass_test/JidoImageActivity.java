@@ -1,12 +1,15 @@
 package com.example.woobipass_test;
 
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import android.widget.ImageView;
-import android.widget.Button;
-import android.view.View;
 import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.ImageView;
 
+import androidx.appcompat.app.AppCompatActivity;
 
 public class JidoImageActivity extends AppCompatActivity {
 

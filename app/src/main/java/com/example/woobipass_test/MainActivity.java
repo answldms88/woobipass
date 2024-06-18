@@ -1,8 +1,11 @@
 package com.example.woobipass_test;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +20,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +28,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
         // Firestore 초기화
         db = FirebaseFirestore.getInstance();
 
+        // 사용자 데이터 초기화
+        preferences = getSharedPreferences("user_data", MODE_PRIVATE);
+
         // "umbrellas" 컬렉션 초기화
         initializeUmbrellasCollection();
 
@@ -41,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
         // QR 코드 스캔 버튼 설정
         setupQRScanButton();
+
+        // 데이터 이미지 버튼 설정
+        setupDataImageButton();
     }
 
     // 지도 버튼 설정
@@ -63,6 +74,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startQRCodeScannerActivity();
+            }
+        });
+    }
+
+    // 데이터 이미지 버튼 설정
+    private void setupDataImageButton() {
+        ImageButton dataImageButton = findViewById(R.id.data);
+        dataImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 사용자에게 현재 우산 상태를 보여주는 메서드 호출
+                showCurrentUmbrellaStatus();
             }
         });
     }
@@ -110,5 +133,50 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    // 현재 우산 상태를 보여주는 메서드
+    private void showCurrentUmbrellaStatus() {
+        db.collection("umbrellas")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            StringBuilder statusText = new StringBuilder();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                String umbrellaId = document.getId();
+                                String status = document.getString("status");
+
+                                // 상태가 null인 경우 "O" (available), 그 외의 경우 "X" (rented 등)
+                                String statusSymbol = (status == null || status.equals("available")) ? "O" : "X";
+
+                                statusText.append("우산 ID: ").append(umbrellaId)
+                                        .append(", 대여가능: ").append(statusSymbol)
+                                        .append("\n");
+                            }
+
+                            // 사용자에게 현재 우산 상태를 보여주는 다이얼로그를 표시합니다.
+                            showStatusAlertDialog(statusText.toString());
+                        } else {
+                            Log.d("Firestore", "Error getting documents: ", task.getException());
+                            Toast.makeText(MainActivity.this, "Error fetching umbrella status.", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+    }
+
+    // 사용자에게 현재 우산 상태를 보여주는 다이얼로그 표시
+    private void showStatusAlertDialog(String statusText) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("현재 우산 상태")
+                .setMessage(statusText)
+                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 }

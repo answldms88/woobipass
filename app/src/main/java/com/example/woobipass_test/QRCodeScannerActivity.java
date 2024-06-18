@@ -22,7 +22,6 @@ import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.CaptureManager;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -91,7 +90,7 @@ public class QRCodeScannerActivity extends AppCompatActivity {
                                     // 우산이 반납 상태일 때 대여 처리
                                     rentUmbrella(document.getReference(), userId);
                                 } else if ("O".equals(currentStatus) && userId.equals(currentUser)) {
-                                    // 현재 사용자가 대여 중인 경우 반납 처리
+                                    // 현재 사용자가 대여 중인 경우
                                     returnUmbrella(document.getReference());
                                 } else {
                                     // 우산이 이미 대여 중인 경우
