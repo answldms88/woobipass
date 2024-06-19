@@ -6,13 +6,13 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -22,10 +22,13 @@ import com.journeyapps.barcodescanner.BarcodeCallback;
 import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.CaptureManager;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class QRCodeScannerActivity extends AppCompatActivity {
 
@@ -107,21 +110,57 @@ public class QRCodeScannerActivity extends AppCompatActivity {
     }
 
     private void rentUmbrella(DocumentReference docRef, String userId) {
-        String currentTime = getCurrentTimeFormatted();
+        // 사용자가 이미 대여 중인 우산이 있는지 확인
+        db.collection("umbrellas")
+                .whereEqualTo("user_id", userId)
+                .whereEqualTo("대여상태", "O")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            if (!task.getResult().isEmpty()) {
+                                // 이미 대여 중인 우산이 있는 경우
+                                Toast.makeText(QRCodeScannerActivity.this, "이미 우산을 대여 중입니다. 반납 후 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                                finish();
+                            } else {
+                                // 대여 가능한 경우 우산 대여 처리
+                                String currentTime = getCurrentTimeFormatted();
 
-        docRef.update("대여상태", "O", "대여시간", currentTime, "user_id", userId)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(QRCodeScannerActivity.this, "우산을 대여했습니다.", Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(QRCodeScannerActivity.this, "Error renting umbrella.", Toast.LENGTH_LONG).show();
-                        finish();
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("대여상태", "O");
+                                updates.put("대여시간", currentTime);
+                                updates.put("user_id", userId);
+
+                                docRef.update(updates)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    // 대여 성공 시 Toast 메시지 표시
+                                                    Toast.makeText(QRCodeScannerActivity.this, "우산을 대여했습니다. 사용자 ID: " + userId, Toast.LENGTH_LONG).show();
+
+                                                    // SharedPreferences에 사용자 아이디 저장
+                                                    SharedPreferences.Editor editor = preferences.edit();
+                                                    editor.putString("user_id", userId);
+                                                    editor.apply();  // 변경 사항을 저장
+
+                                                    // 대여 완료 후 액티비티 종료
+                                                    finish();
+                                                } else {
+                                                    // 대여 실패 시 Toast 메시지 표시
+                                                    Toast.makeText(QRCodeScannerActivity.this, "우산 대여 중 오류가 발생했습니다.", Toast.LENGTH_LONG).show();
+
+                                                    // 오류 발생 후 액티비티 종료
+                                                    finish();
+                                                }
+                                            }
+                                        });
+                            }
+                        } else {
+                            Toast.makeText(QRCodeScannerActivity.this, "Error checking umbrella rental status.", Toast.LENGTH_LONG).show();
+                            finish();
+                        }
                     }
                 });
     }
@@ -129,22 +168,27 @@ public class QRCodeScannerActivity extends AppCompatActivity {
     private void returnUmbrella(DocumentReference docRef) {
         String currentTime = getCurrentTimeFormatted();
 
-        docRef.update("대여상태", "X", "반납시간", currentTime, "user_id", "X")
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("대여상태", "X");
+        updates.put("반납시간", currentTime);
+
+        docRef.update(updates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.remove("user_id");
-                        editor.apply();
-                        Toast.makeText(QRCodeScannerActivity.this, "우산을 반납했습니다.", Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(QRCodeScannerActivity.this, "Error returning umbrella.", Toast.LENGTH_LONG).show();
-                        finish();
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            // 반납 성공 시 Toast 메시지 표시
+                            Toast.makeText(QRCodeScannerActivity.this, "우산을 반납했습니다.", Toast.LENGTH_LONG).show();
+
+                            // 반납 완료 후 액티비티 종료
+                            finish();
+                        } else {
+                            // 반납 실패 시 Toast 메시지 표시
+                            Toast.makeText(QRCodeScannerActivity.this, "우산 반납 중 오류가 발생했습니다.", Toast.LENGTH_LONG).show();
+
+                            // 오류 발생 후 액티비티 종료
+                            finish();
+                        }
                     }
                 });
     }

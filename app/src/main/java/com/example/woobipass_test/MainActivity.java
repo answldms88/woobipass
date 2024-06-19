@@ -3,6 +3,7 @@ package com.example.woobipass_test;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,13 +14,11 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
@@ -114,16 +113,14 @@ public class MainActivity extends AppCompatActivity {
                             umbrellaData.put("return_time", FieldValue.serverTimestamp());
 
                             docRef.set(umbrellaData)
-                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
-                                        public void onSuccess(Void aVoid) {
-                                            Log.d("FirestoreInit", "DocumentSnapshot successfully written!");
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Log.w("FirestoreInit", "Error writing document", e);
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                Log.d("FirestoreInit", "DocumentSnapshot successfully written!");
+                                            } else {
+                                                Log.w("FirestoreInit", "Error writing document", task.getException());
+                                            }
                                         }
                                     });
                         }
@@ -136,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // 현재 우산 상태를 보여주는 메서드
+// 사용자에게 현재 우산 상태를 보여주는 메서드
     private void showCurrentUmbrellaStatus() {
         db.collection("umbrellas")
                 .get()
@@ -146,14 +144,19 @@ public class MainActivity extends AppCompatActivity {
                             StringBuilder statusText = new StringBuilder();
                             for (DocumentSnapshot document : task.getResult()) {
                                 String umbrellaId = document.getId();
-                                String status = document.getString("status");
+                                String currentStatus = document.getString("대여상태");
 
-                                // 상태가 null인 경우 "O" (available), 그 외의 경우 "X" (rented 등)
-                                String statusSymbol = (status == null || status.equals("available")) ? "O" : "X";
-
-                                statusText.append("우산 ID: ").append(umbrellaId)
-                                        .append(", 대여가능: ").append(statusSymbol)
-                                        .append("\n");
+                                // 현재 상태가 "X" (대여 중)이면 대여 중임을 표시
+                                if ("X".equals(currentStatus)) {
+                                    statusText.append("우산 ID: ").append(umbrellaId)
+                                            .append(", 대여상태: ").append("X")
+                                            .append("\n");
+                                } else {
+                                    // 그 외의 경우 "O" (대여 가능)로 표시
+                                    statusText.append("우산 ID: ").append(umbrellaId)
+                                            .append(", 대여상태: ").append("O")
+                                            .append("\n");
+                                }
                             }
 
                             // 사용자에게 현재 우산 상태를 보여주는 다이얼로그를 표시합니다.
